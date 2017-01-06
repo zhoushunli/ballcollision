@@ -19,13 +19,14 @@ public class BallCollipseView extends View {
     private int width;
     private Path framePath;
     private float lineLength;
-    private float angle = -30;//线与坚直方向的夹角
+    private float angle;//线与坚直方向的夹角
     private final int left = 1;
     private final int right = 2;
     private int Col = right;
-    private boolean up=true;
-    private float t;
-    private float a=1.0f/40;
+    private boolean up = true;
+    private float t;//插值，控制摆动速度
+    private float a = 1.0f / 40;//摆动加速度
+    private final float deltaT=2.0f;//摆动速度增值
 
     public BallCollipseView(Context context) {
         this(context, null);
@@ -57,32 +58,34 @@ public class BallCollipseView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        if (angle <= -30) {
-            up=true;
+        if (angle<=-45) {
+            up = true;
         }
-        if (angle >= 30) {
-            up=false;
+        if (angle>=45) {
+            up = false;
         }
-        if (up){//往右走，增加
-            if (Col==right){//-30~0
-                angle=-45+a*t*t/2;
-            }else {//0~30
-//                angle=//TODO 有空再做
+        if (t>60){
+            t=0;
+        }
+        if (up) {//往右走，增加
+            if (Col == right) {
+                angle = -45+a * t * t / 2;//0-60
+            } else {
+                angle = (float) (1.5 * t-a * t * t / 2);//0-60
             }
-//            angle++;
-        }else {//往左走，减小
-//            if (Col==left){//30~0
-//
-//            }else {//0~-30
-//
-//            }
-            angle=45-a*t*t/2;
+        } else {//往左走，减小
+            if (Col == left) {
+                angle = 45-a * t * t / 2;//0-60
+            } else {
+                angle = (float) (-1.5 * t + a * t * t / 2);//0-60
+            }
         }
-        if (angle == 0 && Col == right) {
+        if (angle == 0 && Col == right&&up) {
             Col = left;
-        } else if (angle == 0 && Col == left) {
+        } else if (angle == 0 && Col == left&&!up) {
             Col = right;
         }
+        t+=deltaT;
         drawFrame(canvas);
         drawPendants(canvas);
         invalidate();
@@ -98,7 +101,7 @@ public class BallCollipseView extends View {
     private void drawPendants(Canvas canvas) {
         mPaint.setStrokeWidth(1);
         mPaint.setStyle(Paint.Style.STROKE);
-        if (angle <=0) {
+        if (angle <= 0) {
             canvas.drawLine((float) (width * 1.4 / 4), height / 4,
                     (float) (width * 1.4 / 4 + lineLength * Math.sin(angle / 360 * Math.PI)), (float) (height / 4 + lineLength * Math.cos(angle / 360 * Math.PI)),
                     mPaint);
@@ -112,13 +115,13 @@ public class BallCollipseView extends View {
             if (Col == right) {
                 canvas.drawLine((float) (width * 1.4 / 4 + width * 0.3 * i / 4), height / 4, (float) (width * 1.4 / 4 + width * 0.3 * i / 4), height * 2 / 4, mPaint);
             } else if (Col == left) {
-                canvas.drawLine((float) (width * 1.4 / 4 + width * 0.3 * (i - 1) / 4), height / 4, (float) (width * 1.4 / 4 + width * 0.3 * (i - 1) / 4), height * 2/ 4, mPaint);
+                canvas.drawLine((float) (width * 1.4 / 4 + width * 0.3 * (i - 1) / 4), height / 4, (float) (width * 1.4 / 4 + width * 0.3 * (i - 1) / 4), height * 2 / 4, mPaint);
             }
         }
 
         mPaint.setStyle(Paint.Style.FILL);
 
-        if (angle <=0) {
+        if (angle <= 0) {
             canvas.drawCircle((float) (width * 1.4 / 4 + lineLength * Math.sin(angle / 360 * Math.PI)),
                     (float) (height / 4 + lineLength * Math.cos(angle / 360 * Math.PI)),
                     (float) (width * 0.15 / 4), mPaint);
@@ -133,8 +136,6 @@ public class BallCollipseView extends View {
                 canvas.drawCircle((float) (width * 1.4 / 4 + width * 0.3 / 4 * i), height * 2 / 4, (float) (width * 0.15 / 4), mPaint);
             } else if (Col == left) {
                 canvas.drawCircle((float) (width * 1.4 / 4 + width * 0.3 / 4 * (i - 1)), height * 2 / 4, (float) (width * 0.15 / 4), mPaint);
-            } else {
-
             }
         }
     }
